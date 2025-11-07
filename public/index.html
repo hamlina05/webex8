@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Weather Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+        input, button { padding: 8px; margin: 5px 0; }
+        li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>World Weather Report</h1>
+
+    <form id="weatherForm">
+        <input type="text" id="city" placeholder="City" required>
+        <input type="number" id="temperature" placeholder="Temperature" required>
+        <input type="text" id="condition" placeholder="Condition" required>
+        <button type="submit">Add Weather</button>
+    </form>
+
+    <ul id="weatherList"></ul>
+
+    <script>
+        const form = document.getElementById('weatherForm');
+        const list = document.getElementById('weatherList');
+
+        async function fetchWeather() {
+            const res = await fetch('/api/weather');
+            const data = await res.json();
+            list.innerHTML = '';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.city} - ${item.temperature}°C - ${item.condition}`;
+                
+                const btn = document.createElement('button');
+                btn.textContent = 'Delete';
+                btn.onclick = async () => {
+                    await fetch(`/api/weather/${item._id}`, { method: 'DELETE' });
+                    fetchWeather();
+                };
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            await fetch('/api/weather', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    city: document.getElementById('city').value,
+                    temperature: document.getElementById('temperature').value,
+                    condition: document.getElementById('condition').value
+                })
+            });
+            form.reset();
+            fetchWeather();
+        };
+
+        fetchWeather();
+    </script>
+</body>
+</html>
